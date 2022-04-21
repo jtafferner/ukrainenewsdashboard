@@ -69,7 +69,6 @@ pyarrow==7.0.0
 pycparser==2.21
 pydeck==0.7.1
 Pygments==2.11.2
-pygooglenews==0.1.2
 Pympler==1.0.1
 pyparsing==3.0.8
 pyrsistent==0.18.1
