@@ -74,9 +74,7 @@ def get_world_cities():
 
 cities = get_world_cities()
 
-#@st.cache(suppress_st_warning=True)
-
-@st.experimental_sing
+@st.cache(suppress_st_warning=True)
 def get_news_per_city(city_names = cities['city'], search_in_title = True):
 	"""Returns a dictionary where the city names represent the keys and the news titles about the city the values."""
 
