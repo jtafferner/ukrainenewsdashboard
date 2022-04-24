@@ -300,5 +300,5 @@ date_time = datetime.datetime.now().replace(microsecond=0)
 st.write('The news have been updated at {}'.format(date_time))
 
 if st.button('Reload News'):
-	st.write('You might need to press the button a second time.')
+	st.write('Please press the button above to reload the news.')
 	st.legacy_caching.caching.clear_cache()
