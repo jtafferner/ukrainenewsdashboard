@@ -47,7 +47,7 @@ This way the requirement that the feedparser package version needs to be lower t
 """
 
 COUNTRY = 'Ukraine' # country to be observed
-NEWS_POPULATION_THRESHOLD = 500_000 # population threshold which cities shall be considered
+NEWS_POPULATION_THRESHOLD = 25_000 # population threshold which cities shall be considered
 NEWS_RETROSPECT_THRESHOLD = 7 # The number of days of which news in the past should be considered.
 SAMPLE_NUMBER = 5 # number of news samples to be shown
 
