@@ -6,6 +6,8 @@ import streamlit as st
 import nltk
 from nltk.corpus import stopwords
 from nltk.sentiment import SentimentIntensityAnalyzer
+import datetime
+import os
 
 nltk.download('stopwords')
 nltk.download('SentimentIntensityAnalyzer')
@@ -13,11 +15,10 @@ nltk.download('SentimentIntensityAnalyzer')
 requirements = """
 How to install the required libraries in a conda environment:
 
-conda create --name itpproject python=3.7
+conda create --name itpproject
 conda activate itpproject
-conda install -c anaconda feedparser=5.2.1
-pip install pygooglenews
-conda install plotly
+pip install plotly
+pip install bs4
 pip install streamlit
 pip install matplotlib
 pip install pandas
@@ -44,10 +45,13 @@ Can't be deployed to streamlit share due to an issue with the feedparser version
 This can be resolved by changing from the pygooglenews library to a news api.
 However, these are mostly quite costly which is why another solution might be to recreate the pygooglenews package in this project.
 This way the requirement that the feedparser package version needs to be lower than 6.0.0 can neglected.
+
+TBD:
+Add time of last refreshment.
 """
 
 COUNTRY = 'Ukraine' # country to be observed
-NEWS_POPULATION_THRESHOLD = 25_000 # population threshold which cities shall be considered
+NEWS_POPULATION_THRESHOLD = 500_000 # population threshold which cities shall be considered
 NEWS_RETROSPECT_THRESHOLD = 7 # The number of days of which news in the past should be considered.
 SAMPLE_NUMBER = 5 # number of news samples to be shown
 
@@ -70,7 +74,9 @@ def get_world_cities():
 
 cities = get_world_cities()
 
-@st.cache(suppress_st_warning=True)
+#@st.cache(suppress_st_warning=True)
+
+@st.experimental_sing
 def get_news_per_city(city_names = cities['city'], search_in_title = True):
 	"""Returns a dictionary where the city names represent the keys and the news titles about the city the values."""
 
@@ -110,12 +116,14 @@ def get_news_per_city(city_names = cities['city'], search_in_title = True):
 	progress_bar.empty()
 	text_placeholder.empty()
 	city_placeholder.empty()
+	
+	global date_time
+	date_time = datetime.datetime.now().replace(microsecond=0)
 
 	return news
 
 news = get_news_per_city()
 
-@st.cache(suppress_st_warning=True)
 def tokenize_remove_stop_words(news_dict = news):
 	"""Takes a dictionary of lists, removes stopwords and cleans the text.
 	Required to count most frequent words."""
@@ -265,7 +273,7 @@ else:
 	st.write('Unfortunately, there are no news available for the city you selected.')
 
 if st.button('View all News'):
-	st.subheader('List of all Current News about Selected City')
+	st.subheader(f'List of all Current News about {selected_city}')
 	st.write('This is a list of all current news available for the selected city. To collapse the list simply press the close button at the bottom or reload the page.')
 	st.button('Collapse all News', key=0)
 
@@ -287,3 +295,12 @@ occurrence_per_city = get_occurence_of_word_per_city(search)
 cities = cities.merge(occurrence_per_city, left_on='city', right_on='city')
 
 st.plotly_chart(plot_map(size='word_count', color='word_count', range_color=None, color_continuous_scale=None))
+
+st.subheader('Settings')
+
+date_time = datetime.datetime.now().replace(microsecond=0)
+st.write('The news have been updated at {}'.format(date_time))
+
+if st.button('Reload News'):
+	st.write('You might need to press the button a second time.')
+	st.legacy_caching.caching.clear_cache()
