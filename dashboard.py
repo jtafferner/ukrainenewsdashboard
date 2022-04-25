@@ -135,7 +135,7 @@ def tokenize_remove_stop_words(news_dict = news, lemmatize = True):
 
 	token_news = {}
 	stop_words = set(stopwords.words('english'))
-
+	forbidden_words = ('news', 'russia', 'ukraine', 'ukrainian', 'russian')
 	if lemmatize: lemmatizer = WordNetLemmatizer()
 
 	for city in news_dict.keys():
@@ -147,7 +147,7 @@ def tokenize_remove_stop_words(news_dict = news, lemmatize = True):
 			if lemmatize:
 				words = [lemmatizer.lemmatize(word) for word in words]
 
-			token_news[city].append([word for word in words if (word not in stop_words) and (word.isalpha()) and (len(word) > 1) and (word != city.lower()) and (word not in ['ukraine', 'ukrainian'])])
+			token_news[city].append([word for word in words if (word not in stop_words) and (word.isalpha()) and (len(word) > 1) and (word != city.lower()) and (word not in ['ukraine', 'ukrainian']) and (word not in forbidden_words)])
 
 	return token_news
 
