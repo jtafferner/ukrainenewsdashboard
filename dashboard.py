@@ -59,7 +59,7 @@ Cities with more than one word don't get filtered out.
 """
 
 COUNTRY = 'Ukraine' # country to be observed
-NEWS_POPULATION_THRESHOLD = 50_000 # population threshold which cities shall be considered
+NEWS_POPULATION_THRESHOLD = 500_000 # population threshold which cities shall be considered
 NEWS_RETROSPECT_THRESHOLD = 7 # The number of days of which news in the past should be considered.
 SAMPLE_NUMBER = 5 # number of news samples to be shown
 
@@ -373,8 +373,9 @@ st.plotly_chart(plot_map(size='word_count', color='word_count', range_color=None
 if st.button('View Articles Including Searched Word'):
 	st.write('Below you can find a list of articles that include the searched word or phrases exactly or as part of a word.')
 	st.button('Collapse all News', key=2)
-	rank = 1
+	
 	for city in news.keys():
+		rank = 1
 		city_name_printed = False
 		for headline in news[city]:
 
