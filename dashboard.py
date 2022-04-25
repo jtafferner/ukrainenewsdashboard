@@ -58,7 +58,7 @@ TBD:
 """
 
 COUNTRY = 'Ukraine' # country to be observed
-NEWS_POPULATION_THRESHOLD = 50_000 # population threshold which cities shall be considered
+NEWS_POPULATION_THRESHOLD = 500_000 # population threshold which cities shall be considered
 NEWS_RETROSPECT_THRESHOLD = 7 # The number of days of which news in the past should be considered.
 SAMPLE_NUMBER = 5 # number of news samples to be shown
 
@@ -367,9 +367,15 @@ if st.button('View Articles Including Searched Word'):
 	st.button('Collapse all News', key=2)
 	rank = 1
 	for city in news.keys():
+		city_name_printed = False
 		for headline in news[city]:
 
 			if search.lower() in headline['title'].lower():
+				
+				if not city_name_printed:
+					st.write(f'**{city}**')
+					city_name_printed = True
+
 				title = headline['title']
 				link = headline['link']
 				st.write(f'{rank}. {title} [[Link]]({link})')
@@ -380,7 +386,7 @@ if st.button('View Articles Including Searched Word'):
 
 st.subheader('Most Frequent Words per City')
 selected_city_word = st.selectbox(label='About which city do you want to know more?', options=cities['city'], key=1)
-if len(news[selected_city_word]) != 0:
+if len(news[selected_city_word]) > 0:
 	st.plotly_chart(plot_bar(color_word = search))
 else:
 	st.write('There are unfortunately not enough news availabe for the selected city to plot a chart with the most frequent words. Please try again with a different city.')
