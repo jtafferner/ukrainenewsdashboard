@@ -54,11 +54,12 @@ However, these are mostly quite costly which is why another solution might be to
 This way the requirement that the feedparser package version needs to be lower than 6.0.0 can neglected.
 
 TBD:
-3D Map of word occurrences.
+3D Map of word occurrences
+Cities with more than one word don't get filtered out.
 """
 
 COUNTRY = 'Ukraine' # country to be observed
-NEWS_POPULATION_THRESHOLD = 50_000 # population threshold which cities shall be considered
+NEWS_POPULATION_THRESHOLD = 500_000 # population threshold which cities shall be considered
 NEWS_RETROSPECT_THRESHOLD = 7 # The number of days of which news in the past should be considered.
 SAMPLE_NUMBER = 5 # number of news samples to be shown
 
@@ -112,9 +113,16 @@ def get_news_per_city(city_names = cities['city'], search_in_title = True):
 		search = gn.search(f'{t}{city}', when=f'{NEWS_RETROSPECT_THRESHOLD}d')
 
 		temp_title_list = []
-
 		for element in search['entries']:
-			temp_title_list.append({'title': element['title'], 'link': element['link']})
+			
+			if element['title'].count('-') > 0:
+				
+				cutoff = element['title'].rfind('-') - 1
+				title = element['title'][:cutoff]
+				temp_title_list.append({'title': title, 'link': element['link']})
+			
+			else:
+				temp_title_list.append({'title': element['title'], 'link': element['link']})
 
 		news[city] = temp_title_list
 	
