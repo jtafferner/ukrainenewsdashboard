@@ -55,7 +55,8 @@ This way the requirement that the feedparser package version needs to be lower t
 
 TBD:
 Add time of last refreshment.
-Add bar chart of words
+Add bar chart of words.
+See articles with respective word.
 """
 
 COUNTRY = 'Ukraine' # country to be observed
@@ -216,7 +217,7 @@ def get_average_sentiment_per_city(sentiment_news_dict = sentiment_news):
 
 average_compund_per_city = get_average_sentiment_per_city()
 
-def get_occurence_of_word_per_city(word = 'missile', news_dictionary = token_news):
+def get_occurence_of_word_per_city(word = 'Missile', news_dictionary = news):
 
 	word = word.lower()
 	occurrence_per_city = {}
@@ -225,7 +226,7 @@ def get_occurence_of_word_per_city(word = 'missile', news_dictionary = token_new
 		count = 0
 
 		for headline in news_dictionary[city]:
-			count += headline.count(word)
+			count += headline['title'].count(word)
 		
 		if len(news_dictionary[city]) != 0:
 			occurrence_per_city[city] = round(count / len(news_dictionary[city]), 2)
@@ -361,6 +362,23 @@ occurrence_per_city = get_occurence_of_word_per_city(search)
 cities = cities.merge(occurrence_per_city, left_on='city', right_on='city')
 
 st.plotly_chart(plot_map(size='word_count', color='word_count', range_color=None, color_continuous_scale=None))
+
+
+if st.button('View Articles Including Searched Word'):
+	st.write('Below you can find a list of articles that include the searched word or phrases exactly or as part of a word.')
+	st.button('Collapse all News', key=2)
+	rank = 1
+	for city in news.keys():
+		for headline in news[city]:
+
+			if search.lower() in headline['title'].lower():
+				title = headline['title']
+				link = headline['link']
+				st.write(f'{rank}. {title} [[Link]]({link})')
+				rank += 1
+	if rank == 1:
+		st.write('There are no articles available that include the searched word.')
+	st.button('Collapse all News', key=3)
 
 st.subheader('Most Frequent Words per City')
 selected_city_word = st.selectbox(label='About which city do you want to know more?', options=cities['city'], key=1)
