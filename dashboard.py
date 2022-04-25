@@ -1,3 +1,6 @@
+from lib2to3.pgen2 import token
+from re import A
+from unicodedata import category
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -6,11 +9,15 @@ import streamlit as st
 import nltk
 from nltk.corpus import stopwords
 from nltk.sentiment import SentimentIntensityAnalyzer
+from nltk.stem import WordNetLemmatizer
 import datetime
 import os
 
 nltk.download('stopwords')
 nltk.download('SentimentIntensityAnalyzer')
+nltk.download('vader_lexicon')
+nltk.download('wordnet')
+nltk.download('omw-1.4')
 
 requirements = """
 How to install the required libraries in a conda environment:
@@ -48,6 +55,7 @@ This way the requirement that the feedparser package version needs to be lower t
 
 TBD:
 Add time of last refreshment.
+Add bar chart of words
 """
 
 COUNTRY = 'Ukraine' # country to be observed
@@ -122,19 +130,25 @@ def get_news_per_city(city_names = cities['city'], search_in_title = True):
 
 news = get_news_per_city()
 
-def tokenize_remove_stop_words(news_dict = news):
+def tokenize_remove_stop_words(news_dict = news, lemmatize = True):
 	"""Takes a dictionary of lists, removes stopwords and cleans the text.
 	Required to count most frequent words."""
 
 	token_news = {}
 	stop_words = set(stopwords.words('english'))
 
+	if lemmatize: lemmatizer = WordNetLemmatizer()
+
 	for city in news_dict.keys():
 		token_news[city] = []
 
 		for element in news_dict[city]:
 			words = element['title'].lower().split()
-			token_news[city].append([word for word in words if word not in stop_words])
+
+			if lemmatize:
+				words = [lemmatizer.lemmatize(word) for word in words]
+
+			token_news[city].append([word for word in words if (word not in stop_words) and (word.isalpha()) and (len(word) > 1) and (word != city.lower()) and (word not in ['ukraine', 'ukrainian'])])
 
 	return token_news
 
@@ -164,7 +178,6 @@ def plot_map(size='population', color='polarity', range_color=[-1,1], color_cont
 
 def get_sentiment_per_news(news_dict = news):
 
-	nltk.download('vader_lexicon')
 	sia = SentimentIntensityAnalyzer()
 
 	sentiment_news = {}
@@ -203,7 +216,7 @@ def get_average_sentiment_per_city(sentiment_news_dict = sentiment_news):
 
 average_compund_per_city = get_average_sentiment_per_city()
 
-def get_occurence_of_word_per_city(word = 'attack', news_dictionary = token_news):
+def get_occurence_of_word_per_city(word = 'missile', news_dictionary = token_news):
 
 	word = word.lower()
 	occurrence_per_city = {}
@@ -221,8 +234,63 @@ def get_occurence_of_word_per_city(word = 'attack', news_dictionary = token_news
 
 	occurrence_per_city = pd.DataFrame.from_dict(occurrence_per_city, orient='index').reset_index()
 	occurrence_per_city.columns = ('city', 'word_count')
-	
+
 	return occurrence_per_city
+
+def word_frequency_per_city():
+	
+	shallow_token_news = {}
+	for city in token_news.keys():	
+		shallow_token_news[city] = []
+		
+		for headline in token_news[city]:
+			for word in headline:
+				shallow_token_news[city].append(word)
+	
+	word_frequencies = {}
+	for city in shallow_token_news.keys():
+		word_frequencies[city] = {}
+		
+		for word in shallow_token_news[city]:
+			if word in word_frequencies[city].keys():
+				word_frequencies[city][word] += 1
+			else:
+				word_frequencies[city][word] = 1
+
+	for city in word_frequencies.keys():
+
+		for word in word_frequencies[city].keys():
+
+			word_frequencies[city][word] /= len(token_news[city])
+			word_frequencies[city][word] = round(word_frequencies[city][word], 2)
+			
+	
+	return word_frequencies
+
+def plot_bar(word_frequency_dict = word_frequency_per_city(), color_word = 'russia'):
+
+	PLOT_NUMBER = 15
+
+	city_dict = word_frequency_dict[selected_city_word]
+	
+	word_frequency_df = pd.DataFrame.from_dict(city_dict, orient='index').reset_index()
+	word_frequency_df.columns = ('word', 'frequency')
+	word_frequency_df.sort_values(by=['frequency'], inplace=True, ascending=False)
+	limited_word_frequency_df = word_frequency_df.head(PLOT_NUMBER).reset_index()
+	
+	limited_word_frequency_df['category'] = [str(i) for i in limited_word_frequency_df.index]
+
+	color_discrete_sequence = ['#005bbb'] * PLOT_NUMBER
+	
+	if color_word in list(limited_word_frequency_df['word']):
+		
+		index = limited_word_frequency_df.index[limited_word_frequency_df['word'] == color_word].tolist()[0]
+		color_discrete_sequence[index] = '#ffd500'
+
+	fig = px.bar(limited_word_frequency_df.head(PLOT_NUMBER), x='word', y='frequency', text='frequency', color='category', color_discrete_sequence=color_discrete_sequence)
+	fig.update_layout(showlegend = False)
+
+	return fig
 
 #########################################################################################################
 # Content of the dashboard.																				#
@@ -248,7 +316,7 @@ if st.button('View DataFrame'):
 st.subheader('News Samples')
 st.write("""In this section you can find a sample of current news about the city you select.""")
 
-selected_city = st.selectbox(label='About which city do you want to know more?', options=cities['city'])
+selected_city = st.selectbox(label='About which city do you want to know more?', options=cities['city'], key=0)
 selected_city_news = pd.DataFrame(news[selected_city])
 
 news_available = True
@@ -294,11 +362,17 @@ cities = cities.merge(occurrence_per_city, left_on='city', right_on='city')
 
 st.plotly_chart(plot_map(size='word_count', color='word_count', range_color=None, color_continuous_scale=None))
 
+st.subheader('Most Frequent Words per City')
+selected_city_word = st.selectbox(label='About which city do you want to know more?', options=cities['city'], key=1)
+st.plotly_chart(plot_bar(color_word = search))
+
 st.subheader('Settings')
 
 date_time = datetime.datetime.now().replace(microsecond=0)
-st.write('The news have been updated at {}'.format(date_time))
+st.write('The news have been updated at {} UTC (WET-1)'.format(date_time))
 
 if st.button('Reload News'):
 	st.write('Please press the button above to reload the news.')
+	
+	# legacy_caching will be removed in a future version of streamlit
 	st.legacy_caching.caching.clear_cache()
