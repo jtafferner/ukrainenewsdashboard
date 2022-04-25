@@ -54,9 +54,7 @@ However, these are mostly quite costly which is why another solution might be to
 This way the requirement that the feedparser package version needs to be lower than 6.0.0 can neglected.
 
 TBD:
-Add time of last refreshment.
-Add bar chart of words.
-See articles with respective word.
+3D Map of word occurrences.
 """
 
 COUNTRY = 'Ukraine' # country to be observed
@@ -226,7 +224,7 @@ def get_occurence_of_word_per_city(word = 'Missile', news_dictionary = news):
 		count = 0
 
 		for headline in news_dictionary[city]:
-			count += headline['title'].count(word)
+			count += headline['title'].lower().count(word)
 		
 		if len(news_dictionary[city]) != 0:
 			occurrence_per_city[city] = round(count / len(news_dictionary[city]), 2)
@@ -358,7 +356,7 @@ st.subheader(f'Word Finder')
 
 search = st.text_input(label='Which word do you wish to find?', value='Missile')
 
-occurrence_per_city = get_occurence_of_word_per_city(search)
+occurrence_per_city = get_occurence_of_word_per_city(word = search)
 cities = cities.merge(occurrence_per_city, left_on='city', right_on='city')
 
 st.plotly_chart(plot_map(size='word_count', color='word_count', range_color=None, color_continuous_scale=None))
