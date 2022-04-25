@@ -380,7 +380,10 @@ if st.button('View Articles Including Searched Word'):
 
 st.subheader('Most Frequent Words per City')
 selected_city_word = st.selectbox(label='About which city do you want to know more?', options=cities['city'], key=1)
-st.plotly_chart(plot_bar(color_word = search))
+if len(news[selected_city_news]) != 0:
+	st.plotly_chart(plot_bar(color_word = search))
+else:
+	st.write('There are unfortunately not enough news availabe for the selected city to plot a chart with the most frequent words. Please try again with a different city.')
 
 st.subheader('Settings')
 
