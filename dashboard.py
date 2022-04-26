@@ -1,6 +1,3 @@
-from lib2to3.pgen2 import token
-from re import A
-from unicodedata import category
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -56,19 +53,28 @@ This way the requirement that the feedparser package version needs to be lower t
 TBD:
 3D Map of word occurrences
 Cities with more than one word don't get filtered out.
+Add sidebar to change parameters.
 """
+
 
 COUNTRY = 'Ukraine' # country to be observed
 NEWS_POPULATION_THRESHOLD = 50_000 # population threshold which cities shall be considered
 NEWS_RETROSPECT_THRESHOLD = 7 # The number of days of which news in the past should be considered.
 SAMPLE_NUMBER = 5 # number of news samples to be shown
 
-st.set_page_config(page_title=f'{COUNTRY} News Dashboard', page_icon='🌍')
-st.title(f'{COUNTRY} News Dashboard')
+st.set_page_config(page_title=f'{COUNTRY} News Dashboard', page_icon='🌍', initial_sidebar_state='collapsed')
+
 
 #########################################################################################################
 # Declaration of relevant functions.																	#
 #########################################################################################################
+
+with st.sidebar:
+	
+	country_list = pd.read_csv('resources/worldcities.csv')
+	idx = int(country_list['country'].unique().tolist().index('Ukraine'))
+	st.write('**App Configurations**')
+	COUNTRY = st.selectbox(label='Which country do you wish to observe?', options=country_list['country'].unique(), index=idx)
 
 @st.cache(suppress_st_warning=True)
 def get_world_cities():
@@ -78,9 +84,11 @@ def get_world_cities():
 	world_cities = pd.read_csv('resources/worldcities.csv')
 	cities = world_cities.loc[(world_cities['country'] == COUNTRY) & (world_cities['population'] >= NEWS_POPULATION_THRESHOLD)]
 	
-	return cities
+	return cities, world_cities
 
-cities = get_world_cities()
+st.title(f'{COUNTRY} News Dashboard')
+cities, world_cities = get_world_cities()
+
 
 @st.cache(suppress_st_warning=True)
 def get_news_per_city(city_names = cities['city'], search_in_title = True):
@@ -251,7 +259,9 @@ def word_frequency_per_city():
 		
 		for headline in token_news[city]:
 			for word in headline:
-				shallow_token_news[city].append(word)
+				if word.lower() not in city.lower().split() and word.lower() not in COUNTRY.lower().split():
+
+					shallow_token_news[city].append(word)
 	
 	word_frequencies = {}
 	for city in shallow_token_news.keys():
@@ -273,7 +283,7 @@ def word_frequency_per_city():
 	
 	return word_frequencies
 
-def plot_bar(word_frequency_dict = word_frequency_per_city(), color_word = 'russia'):
+def plot_bar(word_frequency_dict = word_frequency_per_city(), color_word = 'Missile'):
 
 	PLOT_NUMBER = 15
 
@@ -289,7 +299,6 @@ def plot_bar(word_frequency_dict = word_frequency_per_city(), color_word = 'russ
 	color_discrete_sequence = ['#005bbb'] * PLOT_NUMBER
 	
 	if color_word in list(limited_word_frequency_df['word']):
-		
 		index = limited_word_frequency_df.index[limited_word_frequency_df['word'] == color_word].tolist()[0]
 		color_discrete_sequence[index] = '#ffd500'
 
@@ -401,11 +410,10 @@ else:
 
 st.subheader('Settings')
 
-#date_time = datetime.datetime.now().replace(microsecond=0)
 st.write('The news have been updated at {} UTC (WET-1)'.format(date_time))
 
 if st.button('Reload News'):
-	st.write('Please press the button above to reload the news.')
+	st.write('Please press the button above again to reload the news.')
 	
 	# legacy_caching will be removed in a future version of streamlit
 	st.legacy_caching.caching.clear_cache()
