@@ -8,13 +8,13 @@ from modules import googlenews as gnews
 import streamlit as st
 import nltk
 from nltk.corpus import stopwords
-from nltk.sentiment import SentimentIntensityAnalyzer
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from nltk.stem import WordNetLemmatizer
 import datetime
 import os
 
 nltk.download('stopwords')
-nltk.download('SentimentIntensityAnalyzer')
+#nltk.download('SentimentIntensityAnalyzer')
 nltk.download('vader_lexicon')
 nltk.download('wordnet')
 nltk.download('omw-1.4')
@@ -59,7 +59,7 @@ Cities with more than one word don't get filtered out.
 """
 
 COUNTRY = 'Ukraine' # country to be observed
-NEWS_POPULATION_THRESHOLD = 500_000 # population threshold which cities shall be considered
+NEWS_POPULATION_THRESHOLD = 50_000 # population threshold which cities shall be considered
 NEWS_RETROSPECT_THRESHOLD = 7 # The number of days of which news in the past should be considered.
 SAMPLE_NUMBER = 5 # number of news samples to be shown
 
@@ -130,12 +130,11 @@ def get_news_per_city(city_names = cities['city'], search_in_title = True):
 	text_placeholder.empty()
 	city_placeholder.empty()
 	
-	global date_time
 	date_time = datetime.datetime.now().replace(microsecond=0)
 
-	return news
+	return news, date_time
 
-news = get_news_per_city()
+news, date_time = get_news_per_city()
 
 def tokenize_remove_stop_words(news_dict = news, lemmatize = True):
 	"""Takes a dictionary of lists, removes stopwords and cleans the text.
@@ -402,7 +401,7 @@ else:
 
 st.subheader('Settings')
 
-date_time = datetime.datetime.now().replace(microsecond=0)
+#date_time = datetime.datetime.now().replace(microsecond=0)
 st.write('The news have been updated at {} UTC (WET-1)'.format(date_time))
 
 if st.button('Reload News'):
