@@ -298,7 +298,7 @@ def plot_bar(word_frequency_dict = word_frequency_per_city(), color_word = 'Miss
 
 	color_discrete_sequence = ['#005bbb'] * PLOT_NUMBER
 	
-	if color_word in list(limited_word_frequency_df['word']):
+	if color_word.lower() in list(limited_word_frequency_df['word']):
 		index = limited_word_frequency_df.index[limited_word_frequency_df['word'] == color_word].tolist()[0]
 		color_discrete_sequence[index] = '#ffd500'
 
