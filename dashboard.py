@@ -8,7 +8,6 @@ from nltk.corpus import stopwords
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from nltk.stem import WordNetLemmatizer
 import datetime
-import os
 
 nltk.download('stopwords')
 #nltk.download('SentimentIntensityAnalyzer')
@@ -297,10 +296,9 @@ def plot_bar(word_frequency_dict = word_frequency_per_city(), color_word = 'Miss
 	limited_word_frequency_df['category'] = [str(i) for i in limited_word_frequency_df.index]
 
 	color_discrete_sequence = ['#005bbb'] * PLOT_NUMBER
-	
-	color_word_lower = color_word.lower()
-	if (color_word in list(limited_word_frequency_df['word'])) or (color_word_lower in list(limited_word_frequency_df['word'])):
-		index = limited_word_frequency_df.index[limited_word_frequency_df['word'] == color_word].tolist()[0]
+
+	if color_word.lower() in list(limited_word_frequency_df['word']):
+		index = limited_word_frequency_df.index[limited_word_frequency_df['word'] == color_word.lower()].tolist()[0]
 		color_discrete_sequence[index] = '#ffd500'
 
 	fig = px.bar(limited_word_frequency_df.head(PLOT_NUMBER), x='word', y='frequency', text='frequency', color='category', color_discrete_sequence=color_discrete_sequence)
