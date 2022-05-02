@@ -1,3 +1,6 @@
+from lib2to3.pgen2 import token
+from re import A
+from unicodedata import category
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -108,30 +111,34 @@ def get_news_per_city(city_names = cities['city'], search_in_title = True):
 
 	gn = gnews.GoogleNews()
 	news = {}
+	try:
+		
+		for city in city_names:
 
-	for city in city_names:
+			population_current_city = int(cities.loc[cities['city'] == city, ['population']]['population'])
+			city_placeholder.markdown(f'Current city: {city}  \n Population: {population_current_city:,}')
 
-		population_current_city = int(cities.loc[cities['city'] == city, ['population']]['population'])
-		city_placeholder.markdown(f'Current city: {city}  \n Population: {population_current_city:,}')
+			counter += 1
+			progress_bar.progress(counter / num_cities)
 
-		counter += 1
-		progress_bar.progress(counter / num_cities)
+			search = gn.search(f'{t}{city}', when=f'{NEWS_RETROSPECT_THRESHOLD}d')
 
-		search = gn.search(f'{t}{city}', when=f'{NEWS_RETROSPECT_THRESHOLD}d')
-
-		temp_title_list = []
-		for element in search['entries']:
-			
-			if element['title'].count('-') > 0:
+			temp_title_list = []
+			for element in search['entries']:
 				
-				cutoff = element['title'].rfind('-') - 1
-				title = element['title'][:cutoff]
-				temp_title_list.append({'title': title, 'link': element['link']})
-			
-			else:
-				temp_title_list.append({'title': element['title'], 'link': element['link']})
+				if element['title'].count('-') > 0:
+					
+					cutoff = element['title'].rfind('-') - 1
+					title = element['title'][:cutoff]
+					temp_title_list.append({'title': title, 'link': element['link']})
+				
+				else:
+					temp_title_list.append({'title': element['title'], 'link': element['link']})
 
-		news[city] = temp_title_list
+			news[city] = temp_title_list
+
+	except:
+		st.write('WARNING: Streamlit is not able to handle the amount of news data required to display the full map. Hence, only the cities that have been analyzed so far are visible on the map and in the rest of the analyses down below.')
 	
 	progress_bar.empty()
 	text_placeholder.empty()
@@ -310,7 +317,10 @@ def plot_bar(word_frequency_dict = word_frequency_per_city(), color_word = 'Miss
 # Content of the dashboard.																				#
 #########################################################################################################
 
-cities = cities.merge(average_compund_per_city, left_on='city', right_on='city')
+try:
+	cities = cities.merge(average_compund_per_city, left_on='city', right_on='city')
+except:
+	st.write('WARNING: Streamlit is not able to handle the amount of news data required to display the full map. Hence, only the cities that have been analyzed so far are visible on the map and in the rest of the analyses down below.')
 
 plot_threshold = st.slider('Population Threshold', 
 							min_value = NEWS_POPULATION_THRESHOLD,
