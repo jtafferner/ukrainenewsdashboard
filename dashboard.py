@@ -77,6 +77,8 @@ with st.sidebar:
 	idx = int(country_list['country'].unique().tolist().index('Ukraine'))
 	st.write('**App Configurations**')
 	COUNTRY = st.selectbox(label='Which country do you wish to observe?', options=country_list['country'].unique(), index=idx)
+	st.write(**About**)
+	st.write('[Link to the Github Repository](https://github.com/jotheta/ukrainenewsdashboard)')
 
 @st.cache(suppress_st_warning=True)
 def get_world_cities():
