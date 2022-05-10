@@ -15,47 +15,6 @@ nltk.download('vader_lexicon')
 nltk.download('wordnet')
 nltk.download('omw-1.4')
 
-requirements = """
-How to install the required libraries in a conda environment:
-
-conda create --name itpproject
-conda activate itpproject
-pip install plotly
-pip install bs4
-pip install streamlit
-pip install matplotlib
-pip install pandas
-pip install numpy
-pip install nltk
-
-Other helpful conda commands:
-
-conda env remove --name itpproject
-conda uninstall python
-conda install python=3.7
-pip list --format=freeze > requirements.txt
-
-How to run the dashboard.py file:
-
-1. Give full disk access to the terminal (in the Security & Privacy settings).
-2. Open the terminal and change the directory to the project folder.
-3. Activate the respective environment.
-4. Run the following command: streamlit run dashboard.py
-
-Issues:
-
-Can't be deployed to streamlit share due to an issue with the feedparser version 5.2.1.
-This can be resolved by changing from the pygooglenews library to a news api.
-However, these are mostly quite costly which is why another solution might be to recreate the pygooglenews package in this project.
-This way the requirement that the feedparser package version needs to be lower than 6.0.0 can neglected.
-
-TBD:
-3D Map of word occurrences
-Cities with more than one word don't get filtered out.
-Add sidebar to change parameters.
-"""
-
-
 COUNTRY = 'Ukraine' # country to be observed
 NEWS_POPULATION_THRESHOLD = 50_000 # population threshold which cities shall be considered
 NEWS_RETROSPECT_THRESHOLD = 7 # The number of days of which news in the past should be considered.
@@ -325,7 +284,7 @@ plot_threshold = st.slider('Population Threshold',
 							step=50_000,
 							value = NEWS_POPULATION_THRESHOLD)
 
-st.write(f'This map shows all {COUNTRY} cities with a population larger than {plot_threshold:,}. The size of the bubbles correlates with the population whereas the color correlates with the average polarity (positive vs. negative) of the articles where 1 represents extremely positive news and -1 represents extremely negative news.')
+st.write(f'This map shows all {COUNTRY} cities with a population larger than {plot_threshold:,}. The size of the bubbles correlates with the population whereas the color correlates with the average polarity (positive vs. negative) of the current news articles (last 7 days) from Google News where 1 represents extremely positive news and -1 represents extremely negative news. Try the slider above to display less cities on the map.')
 st.plotly_chart(plot_map())
 
 if st.button('View DataFrame'):
@@ -375,7 +334,7 @@ if st.button('View all News'):
 #########################################################################################################
 
 st.subheader(f'Word Finder')
-
+st.write('In this section you can search for a certain word that might appear in the current news about Ukraine and plot the frequency of the occurrence of the word per city. The brightness of the city bubbles correlates with the occurrence frequency. Down below, you can view all news including the respective word sorted on a city level.')
 search = st.text_input(label='Which word do you wish to find?', value='Missile')
 
 occurrence_per_city = get_occurence_of_word_per_city(word = search)
@@ -408,6 +367,7 @@ if st.button('View Articles Including Searched Word'):
 	st.button('Collapse all News', key=3)
 
 st.subheader('Most Frequent Words per City')
+st.write('This section provides a chart of the most frequent words per city you selected. Little hint: Try to search for words that appear in this bar char in the section above and have a look at this bar chart again!')
 selected_city_word = st.selectbox(label='About which city do you want to know more?', options=cities['city'], key=1)
 if len(news[selected_city_word]) > 0:
 	st.plotly_chart(plot_bar(color_word = search))
@@ -417,9 +377,11 @@ else:
 st.subheader('Settings')
 
 st.write('The news have been updated at {} UTC (WET-1)'.format(date_time))
-
+st.write('Please press the button below to reload the news. The button needs to be pressed twice to reload.')
 if st.button('Reload News'):
-	st.write('Please press the button above again to reload the news.')
+	st.write('If you really want to reload please press the button above again.')
 	
 	# legacy_caching will be removed in a future version of streamlit
 	st.legacy_caching.caching.clear_cache()
+
+st.write('If you want to change the country of the analysis, you can to so in the currently collapsed sidebar which can be displayed with a click of the arrow in the top left corner of this page. Please note that this program is not optimized for other countries than Ukraine.')
