@@ -85,10 +85,10 @@ def get_news_per_city(city_names = cities['city'], search_in_title = True):
 					
 					cutoff = element['title'].rfind('-') - 1
 					title = element['title'][:cutoff]
-					temp_title_list.append({'title': title, 'link': element['link']})
+					temp_title_list.append({'title': title, 'link': element['link'], 'pubdate': element['pubdate']})
 				
 				else:
-					temp_title_list.append({'title': element['title'], 'link': element['link']})
+					temp_title_list.append({'title': element['title'], 'link': element['link'], 'pubdate': element['pubdate']})
 
 			news[city] = temp_title_list
 
@@ -301,7 +301,7 @@ news_available = True
 if len(selected_city_news) == 0:
 	news_available = False
 else:
-	selected_city_news.columns = [f'News about {selected_city}', 'Link']
+	selected_city_news.columns = [f'News about {selected_city}', 'Link', 'pubdate']
 
 
 if len(selected_city_news) >= SAMPLE_NUMBER:	
@@ -312,7 +312,8 @@ else:
 if news_available:
 	for i, headline in enumerate(selected_city_news_sample[f'News about {selected_city}']):
 		link = selected_city_news_sample.loc[selected_city_news_sample[f'News about {selected_city}'] == headline, 'Link']
-		st.write(f'{i + 1}. {headline} [[Link]]({list(link)[0]})')
+		pubdate = selected_city_news.loc[selected_city_news[f'News about {selected_city}'] == headline, 'pubdate'].values[0][:-13]
+		st.write(f'{i + 1}. {headline} [[Link]]({list(link)[0]}) - Date: {pubdate}')
 else:
 	st.write('Unfortunately, there are no news available for the city you selected.')
 
@@ -320,11 +321,14 @@ if st.button('View all News'):
 	st.subheader(f'List of all Current News about {selected_city}')
 	st.write('This is a list of all current news available for the selected city. To collapse the list simply press the close button at the bottom or reload the page.')
 	st.button('Collapse all News', key=0)
-
-	for i, headline in enumerate(selected_city_news[f'News about {selected_city}']):
-		link = selected_city_news.loc[selected_city_news[f'News about {selected_city}'] == headline, 'Link']
-		st.write(f'{i + 1}. {headline} [[Link]]({list(link)[0]})')
-
+	
+	if	f'News about {selected_city}' in selected_city_news.columns:
+		for i, headline in enumerate(selected_city_news[f'News about {selected_city}']):
+			link = selected_city_news.loc[selected_city_news[f'News about {selected_city}'] == headline, 'Link']
+			pubdate = selected_city_news.loc[selected_city_news[f'News about {selected_city}'] == headline, 'pubdate'].values[0][:-13]
+			st.write(f'{i + 1}. {headline} [[Link]]({list(link)[0]}) - Date: {pubdate}')
+	else:
+		st.write('Unfortunately, there are no news available for the city you selected.')
 	st.button('Collapse all News', key=1)
 	
 #########################################################################################################
@@ -358,7 +362,8 @@ if st.button('View Articles Including Searched Word'):
 
 				title = headline['title']
 				link = headline['link']
-				st.write(f'{rank}. {title} [[Link]]({link})')
+				pubdate = headline['pubdate'][:-13]
+				st.write(f'{rank}. {title} [[Link]]({link}) - Date: {pubdate}')
 				rank += 1
 	if rank == 1:
 		st.write('There are no articles available that include the searched word.')
