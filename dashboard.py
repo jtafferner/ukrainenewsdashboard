@@ -9,26 +9,27 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from nltk.stem import WordNetLemmatizer
 import datetime
 
+# downloading the required nltk packages. if the package is already downloaded, it will not be downloaded again.
 nltk.download('stopwords')
-#nltk.download('SentimentIntensityAnalyzer')
 nltk.download('vader_lexicon')
 nltk.download('wordnet')
 nltk.download('omw-1.4')
 
+# declaration of dashboard constants
 COUNTRY = 'Ukraine' # country to be observed
 NEWS_POPULATION_THRESHOLD = 50_000 # population threshold which cities shall be considered
-NEWS_RETROSPECT_THRESHOLD = 7 # The number of days of which news in the past should be considered.
+NEWS_RETROSPECT_THRESHOLD = 7 # the number of days of which news in the past should be considered.
 SAMPLE_NUMBER = 5 # number of news samples to be shown
 
 st.set_page_config(page_title=f'{COUNTRY} News Dashboard', page_icon='🌍', initial_sidebar_state='collapsed')
-
+st.title(f'{COUNTRY} News Dashboard')
 
 #########################################################################################################
 # Declaration of relevant functions.																	#
 #########################################################################################################
 
 with st.sidebar:
-	
+
 	country_list = pd.read_csv('resources/worldcities.csv')
 	idx = int(country_list['country'].unique().tolist().index('Ukraine'))
 	st.write('**App Configurations**')
@@ -44,9 +45,7 @@ def get_world_cities():
 	
 	return cities, world_cities
 
-st.title(f'{COUNTRY} News Dashboard')
 cities, world_cities = get_world_cities()
-
 
 @st.cache(suppress_st_warning=True)
 def get_news_per_city(city_names = cities['city'], search_in_title = True):
@@ -155,7 +154,6 @@ def plot_map(size='population', color='polarity', range_color=[-1,1], color_cont
 def get_sentiment_per_news(news_dict = news):
 
 	sia = SentimentIntensityAnalyzer()
-
 	sentiment_news = {}
 
 	for city in news_dict.keys():
@@ -384,4 +382,4 @@ if st.button('Reload News'):
 	# legacy_caching will be removed in a future version of streamlit
 	st.legacy_caching.caching.clear_cache()
 
-st.write('If you want to change the country of the analysis, you can to so in the currently collapsed sidebar which can be displayed with a click of the arrow in the top left corner of this page. Please note that this program is not optimized for other countries than Ukraine.')
+st.write('If you want to change the country of the analysis, you can to so in the currently collapsed sidebar which can be displayed with a click of the arrow in the top left corner of this page. Please note that this program is not optimized for other countries than Ukraine. During this project we make use of the free version of the worldcities.csv file by simplemaps found under https://simplemaps.com/data/world-cities.')
