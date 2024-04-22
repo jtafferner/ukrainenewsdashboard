@@ -145,7 +145,7 @@ def plot_map(size='population', color='polarity', range_color=[-1,1], color_cont
 											population=':,',
 											number_of_articles=':,')) #set thousands delimiter
 
-	fig.update_layout(mapbox_style='stamen-terrain')
+	fig.update_layout(mapbox_style='open-street-map')
 	fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
 	fig.update_layout(title_text="Ukraine")
 	
